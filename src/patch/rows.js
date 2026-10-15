@@ -54,6 +54,15 @@ export function setRowConfigField(document, entryId, field, value) {
   return true
 }
 
+/** 这一行属于哪一层：'global'＝Loader 实例化它；绝对路径＝由本插件按 cwd 挂它。 */
+export function rowScopeOf(document, entryId) {
+  const found = locateRow(document, entryId)
+  if (found === null) return null
+  const config = found.item.get('config')
+  const scope = isMap(config) ? config.get('scope') : undefined
+  return typeof scope === 'string' && scope !== '' ? scope : 'global'
+}
+
 /** Enable/disable a whole row (the Loader's own `disabled` flag). */
 export function setRowDisabled(document, entryId, disabled) {
   const found = locateRow(document, entryId)

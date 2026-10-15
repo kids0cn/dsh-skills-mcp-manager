@@ -43,7 +43,7 @@ export function backupPath() {
  * needs to show.
  */
 const YAML_JS_TAG = { tag: 'tag:yaml.org,2002:js', resolve: (value) => value }
-import { insertRow, locateRow, removeRow, setRowConfigField, setRowDisabled } from './rows.js'
+import { insertRow, locateRow, removeRow, rowScopeOf, setRowConfigField, setRowDisabled } from './rows.js'
 import { dshHome, parseEnv, spawnEnv, splitArgs } from '../runtime/env.js'
 import { connectionFields } from '../mcp/connection.js'
 import { NAME, LEGACY_NAME } from '../identity.js'
@@ -187,7 +187,14 @@ export async function applyRowOp(ctx, op) {
         changed = insertRow(document, rowId, config, { disabled: projectScoped })
       }
     } else if (op.op === 'toggle') {
-      changed = setRowDisabled(document, op.entryId, op.enabled === false)
+      // 项目级行的「启用/停用」绝不能写 Loader 的 `disabled`：那个键是【刻意】写上的
+      // （见 setRowDisabled 注释 —— 让 Loader 不实例化，否则同一 server 被连两次、
+      // 两个客户端、两代工具、一个命名空间）。项目行的用户级开关住在 config.enabled，
+      // userEnabled() 也正是按 scope 分流的。
+      const scope = rowScopeOf(document, op.entryId)
+      changed = scope !== null && scope !== 'global'
+        ? setRowConfigField(document, op.entryId, 'enabled', op.enabled === false ? false : null)
+        : setRowDisabled(document, op.entryId, op.enabled === false)
     } else if (op.op === 'delete') {
       /**
        * Deleting a row that is already gone **succeeds**.
