@@ -176,6 +176,11 @@ export async function applyRowOp(ctx, op) {
       if (op.scopeChanged === true) {
         const scope = op.scope === '' || op.scope === 'global' ? null : op.scope
         fields.scope = scope
+        // ★ 搬家时必须同步维护「Loader 不许实例化项目行」这条不变量 —— 新建路径
+        // （insertRow(..., { disabled: projectScoped })）会自动加，编辑路径原来没管
+        // ⇒ 把一条全局行改成项目行后，它会被【Loader 与插件同时连】（双客户端、两代
+        // 工具、一个命名空间）。搬到全局则清掉该键，让 Loader 正常实例化。
+        changed = setRowDisabled(document, op.entryId, scope !== null) || changed
       }
       for (const [field, value] of Object.entries(fields)) {
         changed = setRowConfigField(document, op.entryId, field, value) || changed
