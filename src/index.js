@@ -844,9 +844,19 @@ export function apply(ctx, config) {
     // The agent is kept because that is the scope its provider registered in, and the
     // probe has to run in the same scope to find it.
     const expected = new Map()
+    // 项目级 server 的来源有两条：插件自己那份列表，以及 profile 里「带 scope 的行」。
+    // 0.5.9 起项目级以带 scope 的行为主，插件那份列表可能为空 —— 只认它会让 expected 恒为空，
+    // 于是项目行被【无作用域】地探测，必然收到 "unavailable in this agent's scope"，
+    // 面板就把一个工作正常的 server 显示成「已放弃重试」。⇒ 两条都要算。
+    const scopeCandidates = [
+      ...committedServers,
+      ...entries
+        .filter((entry) => typeof entry.scope === 'string' && entry.scope !== '' && entry.scope !== 'global')
+        .map((entry) => ({ scope: entry.scope, enabled: entry.enabled !== false, serverName: entry.serverName })),
+    ]
     for (const [agent, entry] of agents) {
       if (typeof entry.cwd !== 'string' || entry.cwd === '') continue
-      for (const server of projectServersFor(committedServers, entry.cwd)) {
+      for (const server of projectServersFor(scopeCandidates, entry.cwd)) {
         if (server.enabled !== false && typeof server.serverName === 'string' && !expected.has(server.serverName)) {
           expected.set(server.serverName, agent)
         }
