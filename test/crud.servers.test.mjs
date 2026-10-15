@@ -136,3 +136,9 @@ test('updateServerOp：带上环境变量与请求头的改动标记', () => {
   assert.equal(op.headersChanged, true)
   assert.equal(op.envChanged, false)
 })
+
+test('connectionChanged：只看 toolCallTimeoutMs 的变化也算改动（否则 update 路径不会写它）', () => {
+  assert.equal(connectionChanged({ toolCallTimeoutMs: '600000' }, { toolCallTimeoutMs: '' }), true)
+  assert.equal(connectionChanged({ toolCallTimeoutMs: '' }, { toolCallTimeoutMs: '600000' }), true)
+  assert.equal(connectionChanged({ toolCallTimeoutMs: '600000' }, { toolCallTimeoutMs: '600000' }), false)
+})

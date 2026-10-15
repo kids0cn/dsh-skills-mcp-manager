@@ -47,6 +47,7 @@ test('connectionDraftOf：把行配置回填成表单草稿，缺省是空串', 
       reconnectInitialDelayMs: '1000',
       reconnectMaxDelayMs: '',
       reconnectMaxAttempts: '60',
+      toolCallTimeoutMs: '',
     },
   )
   const empty = connectionDraftOf(undefined)
@@ -55,6 +56,7 @@ test('connectionDraftOf：把行配置回填成表单草稿，缺省是空串', 
     reconnectInitialDelayMs: '',
     reconnectMaxDelayMs: '',
     reconnectMaxAttempts: '',
+    toolCallTimeoutMs: '',
   })
 })
 
@@ -64,5 +66,22 @@ test('默认值与客户端文档一致（表单占位用的就是这些）', ()
     initialDelayMs: 500,
     maxDelayMs: 30000,
     maxAttempts: 10,
+    toolCallTimeoutMs: 60000,
   })
+})
+
+test('toolCallTimeoutMs：填了才写、空则省略、非法值一律拒绝', () => {
+  assert.deepEqual(connectionFields({ toolCallTimeoutMs: '600000' }), { toolCallTimeoutMs: 600000 })
+  assert.deepEqual(connectionFields({ toolCallTimeoutMs: '' }), {})
+  assert.deepEqual(connectionFields({}), {})
+  assert.throws(() => connectionFields({ toolCallTimeoutMs: 'abc' }), /必须是整数/)
+  assert.throws(() => connectionFields({ toolCallTimeoutMs: '-1' }), /必须是整数/)
+  assert.throws(() => connectionFields({ toolCallTimeoutMs: '0' }), /必须在/)
+  assert.throws(() => connectionFields({ toolCallTimeoutMs: '2147483648' }), /必须在/)
+})
+
+test('toolCallTimeoutMs：回读成表单草稿（数字→字符串，缺省空串）', () => {
+  assert.equal(connectionDraftOf({ toolCallTimeoutMs: 600000 }).toolCallTimeoutMs, '600000')
+  assert.equal(connectionDraftOf({}).toolCallTimeoutMs, '')
+  assert.equal(connectionDraftOf(undefined).toolCallTimeoutMs, '')
 })

@@ -54,13 +54,6 @@ function reconnectNumber(value, field) {
   return parsed
 }
 
-/**
- * The connection fields a panel request carries, as a config fragment.
- *
- * Returns `{}` when nothing is configured, so the client keeps its own defaults
- * and the written YAML stays free of keys that only restate them. `reconnect` is
- * a set: a blank number is omitted, and all three blank omit the whole block.
- */
 /** Parse one top-level config number: blank means "keep the client default". */
 function topLevelNumber(value, label) {
   const text = typeof value === 'string' ? value.trim() : String(value ?? '').trim()
@@ -74,6 +67,13 @@ function topLevelNumber(value, label) {
   return parsed
 }
 
+/**
+ * The connection fields a panel request carries, as a config fragment.
+ *
+ * Returns `{}` when nothing is configured, so the client keeps its own defaults
+ * and the written YAML stays free of keys that only restate them. `reconnect` is
+ * a set: a blank number is omitted, and all three blank omit the whole block.
+ */
 export function connectionFields(source) {
   const out = {}
   if (source?.failOnStartupError === true) out.failOnStartupError = true

@@ -900,6 +900,12 @@ export function apply(ctx, config) {
       // （mountForAgent 的 entry.stops）。而 mcpResources 里按设计【不含】项目行（Loader 被
       // 要求不实例化它），所以拿它去问项目行，答案永远是"不可用"，面板就会把一台工作正常的
       // server 显示成「已放弃重试」/「重试中」。⇒ 项目行以插件自己的挂载结果为准。
+      //
+      // ⚠️ 已知假设（写在这里以免后人误读）：下面把「挂载已发起」（stops 非空）当作「已连接」。
+      // 严格说两者不等价 —— stops 只证明 mountInto 被调用过。取这个口径是因为项目行的连接状态
+      // 在本插件里【没有更强的可观测量】：mcpResources 按设计看不到它，而实测（REA，188 秒重活
+      // 跑满、139 个工具可用）证明"stops 非空"在这条路径上确实对应可用。若将来 mountForAgent
+      // 改成别的方式记录挂载，这里要同步改，否则会静默退回误报。
       const mountedStops = target.tier === 'project' && target.agent !== undefined
         ? (agents.get(target.agent)?.stops?.length ?? 0)
         : 0

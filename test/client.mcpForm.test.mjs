@@ -75,7 +75,7 @@ test('MCP 表单：编辑配置行时回填连接参数，且 command 不被 tar
     // 回填：三个数字来自行配置；command 是原始可执行文件，不是拼好的 target
     const inputs = panel.findAll((node) => node.type === 'input' && node.props.type === 'number')
     const values = inputs.map((node) => node.props.value)
-    assert.deepEqual(values, ['1000', '', '60'], `回填的数字不对：${JSON.stringify(values)}`)
+    assert.deepEqual(values, ['', '1000', '', '60'], `回填的数字不对：${JSON.stringify(values)}`)
     const commandInput = find((node) => node.type === 'input' && node.props.value === 'npx')
     assert.ok(commandInput !== null, 'command 没有回填成原始命令（可能被 target 污染）')
 
@@ -142,7 +142,7 @@ test('项目级编辑：回填连接字段，并作为**行操作**写入（不�
 
     // 回填：必须显示已配置的 1000 / 60000 / 60，而不是空（空会显示成 placeholder 500）
     const numbers = findAll((node) => node.type === 'input' && node.props.type === 'number').map((n) => n.props.value)
-    assert.deepEqual(numbers, ['1000', '60000', '60'], `连接字段没回填：${JSON.stringify(numbers)}`)
+    assert.deepEqual(numbers, ['', '1000', '60000', '60'], `连接字段没回填：${JSON.stringify(numbers)}`)
 
     change(find((node) => node.type === 'input' && node.props.placeholder === '500（默认）'), '2000')
     // 编辑「行」的表单按钮文案是「保存到配置行」——与全局页签完全一致，因为两档同源
