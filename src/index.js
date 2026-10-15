@@ -895,7 +895,17 @@ export function apply(ctx, config) {
       // The registry is a cheap positive signal for a global row. Project servers are
       // mounted into agent scopes and their tools are invisible in the unscoped view,
       // so for them the probe is the only source.
-      const connected = target.tier === 'global' && toolCount > 0 ? true : probed.connected
+      //
+      // 但项目级 server 的"在不在"，本插件自己就知道 —— 它由本插件挂进 agent 的 ctx
+      // （mountForAgent 的 entry.stops）。而 mcpResources 里按设计【不含】项目行（Loader 被
+      // 要求不实例化它），所以拿它去问项目行，答案永远是"不可用"，面板就会把一台工作正常的
+      // server 显示成「已放弃重试」/「重试中」。⇒ 项目行以插件自己的挂载结果为准。
+      const mountedStops = target.tier === 'project' && target.agent !== undefined
+        ? (agents.get(target.agent)?.stops?.length ?? 0)
+        : 0
+      const connected = target.tier === 'global'
+        ? (toolCount > 0 ? true : probed.connected)
+        : (mountedStops > 0 ? true : probed.connected)
       if (connected !== true) {
         refreshProbe(target.serverName, target.agent)
         // Only asked while not connected. An authorization requirement is a *reason a
